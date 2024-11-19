@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:exif/exif.dart';
 import 'photo_details_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,11 +16,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Fotos ohne Standort',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -65,19 +66,19 @@ class _HomePageState extends State<HomePage> {
     await showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: const Text('Zugriff erforderlich'),
-        content: const Text('Bitte erlauben Sie den Fotozugriff, um fortzufahren.'),
+        title: Text(AppLocalizations.of(context)!.permissionDialogTitle),
+        content: Text(AppLocalizations.of(context)!.permissionDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Abbrechen'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
               await PhotoManager.openSetting();
             },
-            child: const Text('Einstellungen öffnen'),
+            child: Text(AppLocalizations.of(context)!.openSettings),
           ),
         ],
       ),
@@ -128,12 +129,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fotos ohne Standort'),
+        title: Text(AppLocalizations.of(context)?.appTitle ?? 'Photos without Location'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _photosWithoutLocation.isEmpty
-          ? const Center(child: Text('Keine Fotos ohne Standort gefunden'))
+          ? Center(child: Text(AppLocalizations.of(context)!.noPhotosFound))
           : ListView.builder(
         itemCount: _photosWithoutLocation.length,
         itemBuilder: (context, index) {
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                   snapshot.hasData) {
                 return ListTile(
                   leading: Image.memory(snapshot.data!),
-                  title: Text(photo.title ?? 'Foto ohne Titel'),
+                  title: Text(photo.title ?? AppLocalizations.of(context)!.photoWithoutTitle),
                   onTap: () {
                     Navigator.push(
                       context,

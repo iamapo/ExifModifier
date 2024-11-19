@@ -1,0 +1,15 @@
+{
+  "appTitle": "Fotos ohne Standort",
+  "permissionDialogTitle": "Zugriff erforderlich",
+  "permissionDialogContent": "Bitte erlauben Sie den Fotozugriff, um fortzufahren.",
+  "cancel": "Abbrechen",
+  "openSettings": "Einstellungen öffnen",
+  "noPhotosFound": "Keine Fotos ohne Standort gefunden",
+  "photoWithoutTitle": "Foto ohne Titel",
+  "photoDetails": "Fotodetails",
+  "errorLoadingDetails": "Fehler beim Laden der Details",
+  "noDataAvailable": "Keine Daten verfügbar",
+  "photoTitle": "Titel",
+  "photoDate": "Datum",
+  "photoSize": "Größe"
+}
