@@ -1,67 +1,200 @@
-import 'dart:typed_data';  // Fügen Sie diesen Import hinzu
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
-class PhotoDetailsScreen extends StatelessWidget {
+class PhotoDetailsScreen extends StatefulWidget {
   final AssetEntity photo;
 
-  const PhotoDetailsScreen({Key? key, required this.photo}) : super(key: key);
+  PhotoDetailsScreen({Key? key, required this.photo}) : super(key: key);
+
+  @override
+  _PhotoDetailsScreenState createState() => _PhotoDetailsScreenState();
+}
+
+class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
+  List<AssetEntity> similarPhotos = [];
+  Map<AssetEntity, String> locationNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSimilarPhotos();
+  }
+
+  Future<String> _getLocationName(double? latitude, double? longitude) async {
+    // Normalisiere die Koordinaten (0.0 wird zu null)
+    latitude = latitude == 0.0 ? null : latitude;
+    longitude = longitude == 0.0 ? null : longitude;
+
+    if (latitude == null || longitude == null) {
+      return 'Keine Location verfügbar';
+    }
+
+    print('_getLocationName Latitude: $latitude, Longitude: $longitude');
+
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        String locality = place.locality ?? '';
+        String country = place.country ?? '';
+        return locality.isNotEmpty && country.isNotEmpty
+            ? '$locality, $country'
+            : 'Location gefunden';
+      }
+    } catch (e) {
+      print('Fehler beim Abrufen der Location: $e');
+    }
+
+    return 'Location nicht gefunden';
+  }
+
+  Future<void> _loadSimilarPhotos() async {
+    try {
+      final similar = await findSimilarImages(widget.photo, const Duration(hours: 1));
+
+      for (var photo in similar) {
+        final latitude = await photo.latitude;
+        final longitude = await photo.longitude;
+
+        print('_loadSimilarPhotos ${photo.title} mit Koordinaten ($latitude, $longitude)');
+
+        final locationName = await _getLocationName(latitude, longitude);
+        print('Location für ${photo.title}: $locationName');
+        locationNames[photo] = locationName;
+      }
+
+      setState(() {
+        similarPhotos = similar;
+      });
+    } catch (e) {
+      print('Fehler beim Laden ähnlicher Fotos: $e');
+    }
+  }
+
+  static Future<List<AssetEntity>> findSimilarImages(
+      AssetEntity targetImage, Duration timeThreshold) async {
+    try {
+      final albums = await PhotoManager.getAssetPathList(type: RequestType.image);
+      if (albums.isEmpty) return [];
+
+      final allImages = await albums.first.getAssetListRange(start: 0, end: 999999);
+      final targetDateTime = await targetImage.createDateTime;
+      List<AssetEntity> similarImages = [];
+
+      for (var image in allImages) {
+        try {
+          // Überspringe das Zielbild selbst
+          if (image.id == targetImage.id) {
+            continue;
+          }
+
+          final latitude = await image.latitude;
+          final longitude = await image.longitude;
+
+          // Normalisiere die Koordinaten
+          final normalizedLat = latitude == 0.0 ? null : latitude;
+          final normalizedLon = longitude == 0.0 ? null : longitude;
+
+          if (normalizedLat != null && normalizedLon != null) {
+            final imageDateTime = await image.createDateTime;
+            final difference = imageDateTime.difference(targetDateTime).abs();
+            if (difference <= timeThreshold) {
+              similarImages.add(image);
+            }
+                    }
+        } catch (e) {
+          print('Fehler bei der Verarbeitung eines einzelnen Bildes: $e');
+          continue;
+        }
+      }
+      return similarImages;
+    } catch (e) {
+      print('Fehler in findSimilarImages: $e');
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.photoDetails),
-      ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _getPhotoDetails(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text(AppLocalizations.of(context)!.errorLoadingDetails));
-          }
-          if (!snapshot.hasData) {
-            return Center(child: Text(AppLocalizations.of(context)!.noDataAvailable));
-          }
-
-          final details = snapshot.data!;
-          return SingleChildScrollView(  // Fügt Scrolling hinzu
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (details['thumbnailData'] != null)
-                    Image.memory(details['thumbnailData'] as Uint8List),
-                  SizedBox(height: 16),
-                  Text('Titel: ${details['title'] ?? 'Kein Titel'}'),
-                  Text('Datum: ${details['createDateTime'] ?? 'Kein Datum'}'),
-                  Text('Größe: ${details['width']} x ${details['height']} Pixel'),
-                ],
+      appBar: AppBar(title: Text('Foto Details')),
+      body: Column(
+        children: [
+          // Hauptbild
+          AspectRatio(
+            aspectRatio: 1,
+            child: AssetEntityImage(widget.photo),
+          ),
+          SizedBox(height: 20),
+          Text('Ähnliche Bilder:'),
+          Expanded(
+            child: similarPhotos.isEmpty
+                ? Center(child: CircularProgressIndicator())
+                : GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.8, // Angepasst für Location Text
               ),
+              itemCount: similarPhotos.length,
+              itemBuilder: (context, index) {
+                final photo = similarPhotos[index];
+                return Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AssetEntityImage(
+                          photo,
+                          isOriginal: false,
+                          thumbnailSize: const ThumbnailSize.square(200),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              locationNames[photo] ?? 'Lädt...',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            FutureBuilder<DateTime?>(
+                              future: Future.value(photo.createDateTime),
+                              builder: (context, snapshot) {
+                                return Text(
+                                  snapshot.data?.toString() ?? 'Kein Datum',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
-  }
-
-  Future<Map<String, dynamic>> _getPhotoDetails() async {
-    try {
-      final Uint8List? thumbnailData = await photo.thumbnailData;
-      return {
-        'thumbnailData': thumbnailData,
-        'title': photo.title,
-        'createDateTime': photo.createDateTime.toString(),
-        'width': photo.width,
-        'height': photo.height,
-      };
-    } catch (e) {
-      print('Fehler beim Laden der Fotodetails: $e');
-      rethrow;
-    }
   }
 }

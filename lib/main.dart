@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:exif/exif.dart';
 import 'photo_details_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -112,17 +111,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> _photoHasNoLocation(AssetEntity photo) async {
-    final Uint8List? imageData = await photo.originBytes;
-    if (imageData == null) return true;
-    try {
-      final Map<String, IfdTag> exifData = await readExifFromBytes(imageData);
-      final gpsLatitude = exifData['GPS GPSLatitude'];
-      final gpsLongitude = exifData['GPS GPSLongitude'];
-      return gpsLatitude == null || gpsLongitude == null;
-    } catch (e) {
-      print('Fehler beim Lesen der EXIF-Daten: $e');
-      return true;
-    }
+    final latitude = _normalizeCoordinate(await photo.latitude);
+    final longitude = _normalizeCoordinate(await photo.longitude);
+
+    print('Lade Bild: $latitude $longitude ${photo.title}');
+    return latitude == null || longitude == null;
+  }
+
+  double? _normalizeCoordinate(double? coordinate) {
+    return coordinate == 0.0 ? null : coordinate;
   }
 
   @override
