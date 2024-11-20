@@ -116,6 +116,9 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    photosWithoutLocation.sort((a, b) =>
+        b.createDateTime.compareTo(a.createDateTime));
+
     setState(() {
       _photosWithoutLocation = photosWithoutLocation;
       _isLoading = false;
