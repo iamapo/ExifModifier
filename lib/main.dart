@@ -105,24 +105,42 @@ class _HomePageState extends State<HomePage> {
       hasAll: true,
     );
 
-    List<AssetEntity> photosWithoutLocation = [];
+    // Verwende Set statt List um Duplikate zu vermeiden
+    Set<AssetEntity> uniquePhotosWithoutLocation = {};
+
     for (var album in albums) {
       final List<AssetEntity> photos = await album.getAssetListPaged(
-          page: 0, size: 50);
+        page: 0,
+        size: 50,
+      );
+
       for (var photo in photos) {
-        if (await _photoHasNoLocation(photo)) {
-          photosWithoutLocation.add(photo);
+        // Prüfe ob das Foto keine Location hat und noch nicht in der Liste ist
+        if (await _photoHasNoLocation(photo) &&
+            !_isPhotoAlreadyInList(photo, uniquePhotosWithoutLocation)) {
+          uniquePhotosWithoutLocation.add(photo);
         }
       }
     }
 
-    photosWithoutLocation.sort((a, b) =>
-        b.createDateTime.compareTo(a.createDateTime));
+    // Konvertiere Set zurück zu List und sortiere nach Erstellungsdatum
+    List<AssetEntity> sortedPhotos = uniquePhotosWithoutLocation.toList()
+      ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
 
     setState(() {
-      _photosWithoutLocation = photosWithoutLocation;
+      _photosWithoutLocation = sortedPhotos;
       _isLoading = false;
     });
+  }
+
+
+  bool _isPhotoAlreadyInList(AssetEntity photo, Set<AssetEntity> photoList) {
+    // Vergleiche anhand der ID und/oder anderen eindeutigen Eigenschaften
+    return photoList.any((existingPhoto) =>
+    existingPhoto.id == photo.id ||
+        (existingPhoto.title == photo.title &&
+            existingPhoto.createDateTime == photo.createDateTime)
+    );
   }
 
   Future<bool> _photoHasNoLocation(AssetEntity photo) async {

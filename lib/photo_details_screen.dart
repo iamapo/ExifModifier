@@ -57,12 +57,11 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
   Future<void> _loadSimilarPhotos() async {
     try {
       final similar = await findSimilarImages(widget.photo, const Duration(hours: 1));
+      print('_loadSimilarPhotos photo.createDateSecond ${widget.photo.thumbnailData} mit createDateTime ${widget.photo.createDateTime}');
 
       for (var photo in similar) {
         final latitude = photo.latitude;
         final longitude = photo.longitude;
-
-        print('_loadSimilarPhotos ${photo.title} mit Koordinaten ($latitude, $longitude)');
 
         final locationName = await _getLocationName(latitude, longitude);
         print('Location für ${photo.title}: $locationName');
