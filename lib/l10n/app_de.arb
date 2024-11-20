@@ -11,5 +11,8 @@
   "noDataAvailable": "Keine Daten verfügbar",
   "photoTitle": "Titel",
   "photoDate": "Datum",
-  "photoSize": "Größe"
+  "photoSize": "Größe",
+  "deletePhotoTitle": "Foto löschen",
+  "deletePhotoContent": "Möchten Sie dieses Foto wirklich löschen?",
+  "delete": "Löschen"
 }

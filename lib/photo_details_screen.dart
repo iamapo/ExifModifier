@@ -6,7 +6,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 class PhotoDetailsScreen extends StatefulWidget {
   final AssetEntity photo;
 
-  PhotoDetailsScreen({Key? key, required this.photo}) : super(key: key);
+  const PhotoDetailsScreen({super.key, required this.photo});
 
   @override
   _PhotoDetailsScreenState createState() => _PhotoDetailsScreenState();
@@ -59,8 +59,8 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
       final similar = await findSimilarImages(widget.photo, const Duration(hours: 1));
 
       for (var photo in similar) {
-        final latitude = await photo.latitude;
-        final longitude = await photo.longitude;
+        final latitude = photo.latitude;
+        final longitude = photo.longitude;
 
         print('_loadSimilarPhotos ${photo.title} mit Koordinaten ($latitude, $longitude)');
 
@@ -84,7 +84,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
       if (albums.isEmpty) return [];
 
       final allImages = await albums.first.getAssetListRange(start: 0, end: 999999);
-      final targetDateTime = await targetImage.createDateTime;
+      final targetDateTime = targetImage.createDateTime;
       List<AssetEntity> similarImages = [];
 
       for (var image in allImages) {
@@ -94,15 +94,15 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
             continue;
           }
 
-          final latitude = await image.latitude;
-          final longitude = await image.longitude;
+          final latitude = image.latitude;
+          final longitude = image.longitude;
 
           // Normalisiere die Koordinaten
           final normalizedLat = latitude == 0.0 ? null : latitude;
           final normalizedLon = longitude == 0.0 ? null : longitude;
 
           if (normalizedLat != null && normalizedLon != null) {
-            final imageDateTime = await image.createDateTime;
+            final imageDateTime = image.createDateTime;
             final difference = imageDateTime.difference(targetDateTime).abs();
             if (difference <= timeThreshold) {
               similarImages.add(image);
@@ -123,7 +123,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Foto Details')),
+      appBar: AppBar(title: const Text('Foto Details')),
       body: Column(
         children: [
           // Hauptbild

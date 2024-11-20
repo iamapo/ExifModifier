@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -48,6 +48,15 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _requestPermissionsAndLoadPhotos();
+  }
+
+  Future<void> _deletePhoto(AssetEntity photo) async {
+    final result = await PhotoManager.editor.deleteWithIds([photo.id]);
+    if (result.isNotEmpty) {
+      setState(() {
+        _photosWithoutLocation.remove(photo);
+      });
+    }
   }
 
   Future<void> _requestPermissionsAndLoadPhotos() async {
@@ -129,64 +138,128 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations
-            .of(context)
-            ?.appTitle ?? 'Fotos ohne Standort'),
+        title: Text(AppLocalizations.of(context)?.appTitle ?? 'Fotos ohne Standort'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _photosWithoutLocation.isEmpty
           ? Center(child: Text(AppLocalizations.of(context)!.noPhotosFound))
-          : ListView.builder(
-        itemCount: _photosWithoutLocation.length,
-        itemBuilder: (context, index) {
-          final photo = _photosWithoutLocation[index];
-          return FutureBuilder<Uint8List?>(
-            future: photo.thumbnailDataWithSize(ThumbnailSize(MediaQuery
-                .of(context)
-                .size
-                .width
-                .toInt(), 300)),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PhotoDetailsScreen(photo: photo),
+          : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            childAspectRatio: 1,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _photosWithoutLocation.length,
+          itemBuilder: (context, index) {
+            final photo = _photosWithoutLocation[index];
+            return FutureBuilder<Uint8List?>(
+              future: photo.thumbnailDataWithSize(
+                const ThumbnailSize(200, 200),
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    elevation: 2,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PhotoDetailsScreen(photo: photo),
+                          ),
+                        );
+                      },
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: Text(AppLocalizations.of(context)!
+                                .deletePhotoTitle),
+                            content: Text(AppLocalizations.of(context)!
+                                .deletePhotoContent),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(),
+                                child: Text(
+                                    AppLocalizations.of(context)!.cancel),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _deletePhoto(photo);
+                                },
+                                child: Text(
+                                    AppLocalizations.of(context)!.delete),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Bild
+                          Image.memory(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                          ),
+                          // Optional: Titel-Overlay am unteren Rand
+                          if (photo.title != null)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Colors.black.withOpacity(0.7),
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  photo.title!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.memory(
-                        snapshot.data!,
-                        width: double.infinity,
-                        height: 300,
-                        fit: BoxFit.cover,
+                    ),
+                  );
+                }
+                return const Card(
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          photo.title ??
-                              AppLocalizations.of(context)!.photoWithoutTitle,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .titleLarge,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          );
-        },
+              },
+            );
+          },
+        ),
       ),
     );
   }
