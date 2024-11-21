@@ -60,10 +60,16 @@ class PhotoService extends ChangeNotifier {
   }
 
   Future<void> deletePhoto(AssetEntity photo) async {
-    final result = await PhotoManager.editor.deleteWithIds([photo.id]);
-    if (result.isNotEmpty) {
-      _photosWithoutLocation.remove(photo);
-      notifyListeners();
+    try {
+      final result = await PhotoManager.editor.deleteWithIds([photo.id]);
+      if (result.isNotEmpty) {
+        _photosWithoutLocation.remove(photo);
+        notifyListeners();
+      } else {
+        print('Fehler beim Löschen des Fotos');
+      }
+    } catch (e) {
+      print('Fehler beim Löschen des Fotos: $e');
     }
   }
 }

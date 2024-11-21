@@ -166,19 +166,25 @@ class _PhotoListState extends State<PhotoList> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deletePhotoTitle),
-        content: Text(AppLocalizations.of(context)!.deletePhotoContent),
+        title: Text(AppLocalizations.of(context)?.deletePhotoTitle ?? 'Foto löschen'),
+        content: Text(AppLocalizations.of(context)?.deletePhotoContent ?? 'Möchten Sie dieses Foto wirklich löschen?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Abbrechen'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              photoService.deletePhoto(photo);
+              try {
+                await photoService.deletePhoto(photo);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Fehler beim Löschen des Fotos: $e')),
+                );
+              }
             },
-            child: Text(AppLocalizations.of(context)!.delete),
+            child: Text(AppLocalizations.of(context)?.delete ?? 'Löschen'),
           ),
         ],
       ),
