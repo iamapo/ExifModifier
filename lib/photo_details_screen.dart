@@ -1,8 +1,10 @@
+import 'package:exif_modifier/photo_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:provider/provider.dart';
 
 class PhotoDetailsScreen extends StatefulWidget {
   final AssetEntity photo;
@@ -14,7 +16,8 @@ class PhotoDetailsScreen extends StatefulWidget {
 }
 
 class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
-  static const platform = MethodChannel('io.flutter.flutter.app/photo_location');
+  static const platform =
+      MethodChannel('io.flutter.flutter.app/photo_location');
   List<AssetEntity> similarPhotos = [];
   Map<AssetEntity, String> locationNames = {};
 
@@ -58,8 +61,10 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
 
   Future<void> _loadSimilarPhotos() async {
     try {
-      final similar = await findSimilarImages(widget.photo, const Duration(hours: 1));
-      print('_loadSimilarPhotos photo.createDateSecond ${widget.photo.thumbnailData} mit createDateTime ${widget.photo.createDateTime}');
+      final similar =
+          await findSimilarImages(widget.photo, const Duration(hours: 1));
+      print(
+          '_loadSimilarPhotos photo.createDateSecond ${widget.photo.thumbnailData} mit createDateTime ${widget.photo.createDateTime}');
 
       for (var photo in similar) {
         final latitude = photo.latitude;
@@ -81,10 +86,12 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
   static Future<List<AssetEntity>> findSimilarImages(
       AssetEntity targetImage, Duration timeThreshold) async {
     try {
-      final albums = await PhotoManager.getAssetPathList(type: RequestType.image);
+      final albums =
+          await PhotoManager.getAssetPathList(type: RequestType.image);
       if (albums.isEmpty) return [];
 
-      final allImages = await albums.first.getAssetListRange(start: 0, end: 999999);
+      final allImages =
+          await albums.first.getAssetListRange(start: 0, end: 999999);
       final targetDateTime = targetImage.createDateTime;
       List<AssetEntity> similarImages = [];
 
@@ -108,7 +115,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
             if (difference <= timeThreshold) {
               similarImages.add(image);
             }
-                    }
+          }
         } catch (e) {
           print('Fehler bei der Verarbeitung eines einzelnen Bildes: $e');
           continue;
@@ -126,9 +133,13 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
       final latitude = sourcePhoto.latitude;
       final longitude = sourcePhoto.longitude;
 
-      if (latitude == null || longitude == null || latitude == 0.0 || longitude == 0.0) {
+      if (latitude == null ||
+          longitude == null ||
+          latitude == 0.0 ||
+          longitude == 0.0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Keine Location im ausgewählten Bild gefunden')),
+          const SnackBar(
+              content: Text('Keine Location im ausgewählten Bild gefunden')),
         );
         return;
       }
@@ -145,12 +156,19 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
       });
 
       if (success) {
-        setState(() {
-          locationNames[widget.photo] = locationNames[sourcePhoto] ?? 'Location aktualisiert';
-        });
+        // Zeige eine Snackbar als Rückmeldung
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location wurde erfolgreich übertragen')),
+          SnackBar(content: Text('Location übernommen!')),
         );
+
+        final photoService = context.read<PhotoService>();
+        await photoService.removePhoto(widget.photo);
+        setState(() {
+          locationNames[widget.photo] =
+              locationNames[sourcePhoto] ?? 'Location aktualisiert';
+        });
+
+        Navigator.of(context).pop();
       } else {
         throw Exception('Location konnte nicht gesetzt werden');
       }
@@ -176,9 +194,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              widget.photo.createDateTime != null
-                  ? '${widget.photo.createDateTime}'
-                  : 'Kein Datum verfügbar',
+              'Aufnahmedatum: ${widget.photo.createDateTime}',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
@@ -188,76 +204,75 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
             child: similarPhotos.isEmpty
                 ? Center(child: CircularProgressIndicator())
                 : GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.8, // Angepasst für Location Text
-              ),
-              itemCount: similarPhotos.length,
-              itemBuilder: (context, index) {
-                final photo = similarPhotos[index];
-                return GestureDetector(
-                  onTap: () async {
-                    // Übertrage die Location des ausgewählten Bildes auf das Hauptbild
-                    await _applyLocationFromPhoto(photo);
-
-                    // Zeige eine Snackbar als Rückmeldung
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Location vom Bild ${photo.title} übernommen!')),
-                    );
-                  },
-                  child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: AssetEntityImage(
-                              photo,
-                              isOriginal: false,
-                              thumbnailSize: const ThumbnailSize.square(200),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.8, // Angepasst für Location Text
+                    ),
+                    itemCount: similarPhotos.length,
+                    itemBuilder: (context, index) {
+                      final photo = similarPhotos[index];
+                      return GestureDetector(
+                        onTap: () async {
+                          // Übertrage die Location des ausgewählten Bildes auf das Hauptbild
+                          await _applyLocationFromPhoto(photo);
+                        },
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                locationNames[photo] ?? 'Lädt...',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: AssetEntityImage(
+                                    photo,
+                                    isOriginal: false,
+                                    thumbnailSize:
+                                        const ThumbnailSize.square(200),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              FutureBuilder<DateTime?>(
-                                future: Future.value(photo.createDateTime),
-                                builder: (context, snapshot) {
-                                  return Text(
-                                    snapshot.data?.toString() ?? 'Kein Datum',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      locationNames[photo] ?? 'Lädt...',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  );
-                                },
+                                    FutureBuilder<DateTime?>(
+                                      future:
+                                          Future.value(photo.createDateTime),
+                                      builder: (context, snapshot) {
+                                        return Text(
+                                          snapshot.data?.toString() ??
+                                              'Kein Datum',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

@@ -4,42 +4,72 @@ import 'package:photo_manager/photo_manager.dart';
 class PhotoService extends ChangeNotifier {
   List<AssetEntity> _photosWithoutLocation = [];
   bool _isLoading = false;
+  bool _isInitialized = false;
 
-  List<AssetEntity> get photosWithoutLocation => _photosWithoutLocation;
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
+  List<AssetEntity> get photosWithoutLocation => _photosWithoutLocation;
+
+  PhotoService() {
+    // Konstruktor bleibt leer
+  }
+
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    await requestPermissionsAndLoadPhotos();
+    _isInitialized = true;
+  }
 
   Future<bool> requestPermissionsAndLoadPhotos() async {
-    final PermissionState result = await PhotoManager.requestPermissionExtend();
-    if (result.isAuth) {
+    if (_isLoading) return false;
+
+    _isLoading = true;
+    // Verzögern Sie den notifyListeners Aufruf
+    Future.microtask(() => notifyListeners());
+
+    try {
+      final permitted = await PhotoManager.requestPermissionExtend();
+      if (!permitted.isAuth) {
+        _isLoading = false;
+        Future.microtask(() => notifyListeners());
+        return false;
+      }
+
       await loadPhotos();
+      return true;
+    } finally {
+      _isLoading = false;
+      Future.microtask(() => notifyListeners());
     }
-    return result.isAuth;
   }
 
   Future<void> loadPhotos() async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+        type: RequestType.image,
+        hasAll: true,
+      );
 
-    final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
-      hasAll: true,
-    );
+      Set<AssetEntity> uniquePhotosWithoutLocation = {};
 
-    Set<AssetEntity> uniquePhotosWithoutLocation = {};
-    for (var album in albums) {
-      final List<AssetEntity> photos = await album.getAssetListPaged(page: 0, size: 50);
-      for (var photo in photos) {
-        if (await _photoHasNoLocation(photo) &&
-            !_isPhotoAlreadyInList(photo, uniquePhotosWithoutLocation)) {
-          uniquePhotosWithoutLocation.add(photo);
+      for (var album in albums) {
+        final List<AssetEntity> photos = await album.getAssetListPaged(page: 0, size: 50);
+        for (var photo in photos) {
+          if (await _photoHasNoLocation(photo) &&
+              !_isPhotoAlreadyInList(photo, uniquePhotosWithoutLocation)) {
+            uniquePhotosWithoutLocation.add(photo);
+          }
         }
       }
-    }
 
-    _photosWithoutLocation = uniquePhotosWithoutLocation.toList()
-      ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-    _isLoading = false;
-    notifyListeners();
+      _photosWithoutLocation = uniquePhotosWithoutLocation.toList()
+        ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+
+    } catch (e) {
+      print('Fehler beim Laden der Fotos: $e');
+      _photosWithoutLocation = [];
+    }
   }
 
   Future<bool> _photoHasNoLocation(AssetEntity photo) async {
@@ -71,5 +101,10 @@ class PhotoService extends ChangeNotifier {
     } catch (e) {
       print('Fehler beim Löschen des Fotos: $e');
     }
+  }
+
+  Future<void> removePhoto(AssetEntity photo) async {
+    _photosWithoutLocation.removeWhere((p) => p.id == photo.id);
+    notifyListeners();
   }
 }

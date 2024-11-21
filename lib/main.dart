@@ -4,9 +4,13 @@ import 'photo_service.dart';
 import 'photo_list.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final photoService = PhotoService();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => PhotoService(),
+    ChangeNotifierProvider<PhotoService>.value(
+      value: photoService,
       child: MyApp(),
     ),
   );

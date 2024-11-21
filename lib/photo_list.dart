@@ -6,25 +6,28 @@ import 'photo_details_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:typed_data';
 
-
 class PhotoList extends StatefulWidget {
   @override
   _PhotoListState createState() => _PhotoListState();
 }
 
 class _PhotoListState extends State<PhotoList> {
-  @override
   void initState() {
     super.initState();
-    _initializePhotos();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializePhotos();
+    });
   }
 
   Future<void> _initializePhotos() async {
-    final photoService = context.read<PhotoService>();
-    final hasPermission = await photoService.requestPermissionsAndLoadPhotos();
-    if (!hasPermission && mounted) {
-      _showPermissionDialog();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final photoService = context.read<PhotoService>();
+      final hasPermission =
+          await photoService.requestPermissionsAndLoadPhotos();
+      if (!hasPermission && mounted) {
+        _showPermissionDialog();
+      }
+    });
   }
 
   Future<void> _showPermissionDialog() async {
@@ -62,7 +65,9 @@ class _PhotoListState extends State<PhotoList> {
             return const Center(child: CircularProgressIndicator());
           }
           if (photoService.photosWithoutLocation.isEmpty) {
-            return Center(child: Text(AppLocalizations.of(context)!.noPhotosFound));
+            return Center(
+              child: Text(AppLocalizations.of(context)?.noPhotosFound ?? 'Keine Fotos gefunden'),
+            );
           }
           return _buildPhotoGrid(photoService);
         },
@@ -89,12 +94,14 @@ class _PhotoListState extends State<PhotoList> {
   }
 
   Widget _buildPhotoItem(AssetEntity photo) {
-    final Future<Uint8List?> thumbnailFuture = photo.thumbnailDataWithSize(const ThumbnailSize(200, 200));
+    final Future<Uint8List?> thumbnailFuture =
+        photo.thumbnailDataWithSize(const ThumbnailSize(200, 200));
 
     return FutureBuilder<Uint8List?>(
       future: thumbnailFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
           return _buildPhotoCard(photo, snapshot.data!);
         }
         return const Card(
@@ -109,7 +116,6 @@ class _PhotoListState extends State<PhotoList> {
       },
     );
   }
-
 
   Widget _buildPhotoCard(AssetEntity photo, Uint8List imageData) {
     return Card(
@@ -166,8 +172,10 @@ class _PhotoListState extends State<PhotoList> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)?.deletePhotoTitle ?? 'Foto löschen'),
-        content: Text(AppLocalizations.of(context)?.deletePhotoContent ?? 'Möchten Sie dieses Foto wirklich löschen?'),
+        title: Text(
+            AppLocalizations.of(context)?.deletePhotoTitle ?? 'Foto löschen'),
+        content: Text(AppLocalizations.of(context)?.deletePhotoContent ??
+            'Möchten Sie dieses Foto wirklich löschen?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
