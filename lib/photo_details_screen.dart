@@ -119,6 +119,33 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
     }
   }
 
+  Future<void> _applyLocationFromPhoto(AssetEntity sourcePhoto) async {
+    try {
+      // Prüfen ob das Quellbild eine Location hat
+      final latitude = sourcePhoto.latitude;
+      final longitude = sourcePhoto.longitude;
+
+      if (latitude == null || longitude == null ||
+          latitude == 0.0 || longitude == 0.0) {
+        return;
+      }
+
+      // widget.photo.latitude = latitude;
+
+      // Location auf das Hauptbild übertragen
+      // Hier müsste die tatsächliche EXIF Modifikation erfolgen
+      // Dies erfordert möglicherweise zusätzliche Plugins/Implementierung
+
+      // UI Update
+      setState(() {
+        // UI aktualisieren nach erfolgreicher Übertragung
+      });
+
+    } catch (e) {
+      print('Fehler beim Übertragen der Location: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,11 +177,14 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: AssetEntityImage(
-                          photo,
-                          isOriginal: false,
-                          thumbnailSize: const ThumbnailSize.square(200),
-                          fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: AssetEntityImage(
+                            photo,
+                            isOriginal: false,
+                            thumbnailSize: const ThumbnailSize.square(200),
+                            fit: BoxFit.cover
+                          ),
                         ),
                       ),
                       Padding(
@@ -163,7 +193,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              locationNames[photo] ?? 'Lädt...',
+                              locationNames[photo]!,
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
