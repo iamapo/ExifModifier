@@ -120,6 +120,8 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
   }
 
   Future<void> _applyLocationFromPhoto(AssetEntity sourcePhoto) async {
+    print('source location ${sourcePhoto.latitude}');
+    print('target location ${widget.photo.latitude}');
     try {
       // Prüfen ob das Quellbild eine Location hat
       final latitude = sourcePhoto.latitude;
@@ -157,6 +159,15 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
             aspectRatio: 1,
             child: AssetEntityImage(widget.photo),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.photo.createDateTime != null
+                  ? '${widget.photo.createDateTime}'
+                  : 'Kein Datum verfügbar',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
           SizedBox(height: 20),
           Text('Ähnliche Bilder:'),
           Expanded(
@@ -172,51 +183,63 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
               itemCount: similarPhotos.length,
               itemBuilder: (context, index) {
                 final photo = similarPhotos[index];
-                return Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: AssetEntityImage(
-                            photo,
-                            isOriginal: false,
-                            thumbnailSize: const ThumbnailSize.square(200),
-                            fit: BoxFit.cover
+                return GestureDetector(
+                  onTap: () async {
+                    // Übertrage die Location des ausgewählten Bildes auf das Hauptbild
+                    await _applyLocationFromPhoto(photo);
+
+                    // Zeige eine Snackbar als Rückmeldung
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Location vom Bild ${photo.title} übernommen!')),
+                    );
+                  },
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: AssetEntityImage(
+                              photo,
+                              isOriginal: false,
+                              thumbnailSize: const ThumbnailSize.square(200),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              locationNames[photo]!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                locationNames[photo] ?? 'Lädt...',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            FutureBuilder<DateTime?>(
-                              future: Future.value(photo.createDateTime),
-                              builder: (context, snapshot) {
-                                return Text(
-                                  snapshot.data?.toString() ?? 'Kein Datum',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                              FutureBuilder<DateTime?>(
+                                future: Future.value(photo.createDateTime),
+                                builder: (context, snapshot) {
+                                  return Text(
+                                    snapshot.data?.toString() ?? 'Kein Datum',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
