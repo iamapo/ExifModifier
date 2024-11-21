@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
@@ -13,6 +14,7 @@ class PhotoDetailsScreen extends StatefulWidget {
 }
 
 class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
+  static const platform = MethodChannel('io.flutter.flutter.app/photo_location');
   List<AssetEntity> similarPhotos = [];
   Map<AssetEntity, String> locationNames = {};
 
@@ -120,31 +122,43 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
   }
 
   Future<void> _applyLocationFromPhoto(AssetEntity sourcePhoto) async {
-    print('source location ${sourcePhoto.latitude}');
-    print('target location ${widget.photo.latitude}');
     try {
-      // Prüfen ob das Quellbild eine Location hat
       final latitude = sourcePhoto.latitude;
       final longitude = sourcePhoto.longitude;
 
-      if (latitude == null || longitude == null ||
-          latitude == 0.0 || longitude == 0.0) {
+      if (latitude == null || longitude == null || latitude == 0.0 || longitude == 0.0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Keine Location im ausgewählten Bild gefunden')),
+        );
         return;
       }
 
-      // widget.photo.latitude = latitude;
+      final String? localId = widget.photo.id;
+      if (localId == null) {
+        throw Exception('Keine lokale ID für das Foto gefunden');
+      }
 
-      // Location auf das Hauptbild übertragen
-      // Hier müsste die tatsächliche EXIF Modifikation erfolgen
-      // Dies erfordert möglicherweise zusätzliche Plugins/Implementierung
-
-      // UI Update
-      setState(() {
-        // UI aktualisieren nach erfolgreicher Übertragung
+      final bool success = await platform.invokeMethod('updatePhotoLocation', {
+        'localId': localId,
+        'latitude': latitude,
+        'longitude': longitude,
       });
 
+      if (success) {
+        setState(() {
+          locationNames[widget.photo] = locationNames[sourcePhoto] ?? 'Location aktualisiert';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location wurde erfolgreich übertragen')),
+        );
+      } else {
+        throw Exception('Location konnte nicht gesetzt werden');
+      }
     } catch (e) {
       print('Fehler beim Übertragen der Location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Übertragen der Location: $e')),
+      );
     }
   }
 

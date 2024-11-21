@@ -49,12 +49,5 @@
     <string>Diese App benötigt Zugriff auf Ihre Fotos, um EXIF-Daten zu bearbeiten.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Diese App benötigt die Berechtigung, um bearbeitete Fotos in Ihrer Bibliothek zu speichern.</string>
-    <!-- Für den Zugriff auf die Medienbibliothek -->
-    <key>NSAppleMusicUsageDescription</key>
-    <string>Diese App benötigt Zugriff auf Ihre Medienbibliothek.</string>
-
-    <!-- Für den Zugriff auf die Kamera (falls benötigt) -->
-    <key>NSCameraUsageDescription</key>
-    <string>Diese App benötigt Zugriff auf die Kamera.</string>
 </dict>
 </plist>
