@@ -1,17 +1,29 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'photo_service.dart';
 import 'photo_details_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'dart:typed_data';
 
 class PhotoList extends StatefulWidget {
   @override
   _PhotoListState createState() => _PhotoListState();
+
+  final VoidCallback onPhotoLocationSaved; // Add callback function
+
+  const PhotoList({Key? key, required this.onPhotoLocationSaved})
+      : super(key: key);
 }
 
 class _PhotoListState extends State<PhotoList> {
+  int? _selectedYear;
+  String? _selectedTimeRange;
+  List<int> _years = [];
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -22,12 +34,17 @@ class _PhotoListState extends State<PhotoList> {
   Future<void> _initializePhotos() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final photoService = context.read<PhotoService>();
-      final hasPermission =
-          await photoService.requestPermissionsAndLoadPhotos();
+      final hasPermission = await photoService.requestPermissionsAndLoadPhotos(timeRange: _selectedTimeRange);
       if (!hasPermission && mounted) {
         _showPermissionDialog();
       }
+
+      setState(() {
+        _years = _getYears();
+        _selectedYear = DateTime.now().year;
+      });
     });
+    print(AppLocalizations.of(context)!.appTitle);
   }
 
   Future<void> _showPermissionDialog() async {
@@ -44,7 +61,13 @@ class _PhotoListState extends State<PhotoList> {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await PhotoManager.openSetting();
+              if (Platform.isIOS) {
+                // Öffnet die App-Einstellungen auf iOS
+                await openAppSettings();
+              } else {
+                // Öffnet die App-Einstellungen auf Android
+                await PhotoManager.openSetting();
+              }
             },
             child: Text(AppLocalizations.of(context)!.openSettings),
           ),
@@ -57,7 +80,26 @@ class _PhotoListState extends State<PhotoList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)?.appTitle ?? 'Fotos ohne Standort'),
+        backgroundColor: Colors.white,
+        title: Text(AppLocalizations.of(context)!.appTitle),
+        actions: [
+          DropdownButton<int>(
+            value: _selectedYear,
+            onChanged: (int? newValue) {
+              setState(() {
+                _selectedYear = newValue;
+                _initializePhotos(); // Reload photos
+              });
+            },
+            underline: Container(),
+            items: _years.map((int year) { // Use _years for dropdown items
+              return DropdownMenuItem<int>(
+                value: year,
+                child: Text(year.toString()),
+              );
+            }).toList(),
+          ),
+        ],
       ),
       body: Consumer<PhotoService>(
         builder: (context, photoService, child) {
@@ -66,13 +108,24 @@ class _PhotoListState extends State<PhotoList> {
           }
           if (photoService.photosWithoutLocation.isEmpty) {
             return Center(
-              child: Text(AppLocalizations.of(context)?.noPhotosFound ?? 'Keine Fotos gefunden'),
+              child: Text(AppLocalizations.of(context)!.noPhotosFound),
             );
           }
+
           return _buildPhotoGrid(photoService);
         },
       ),
     );
+  }
+
+  List<int> _getYears() {
+    final photoService = context.read<PhotoService>();
+    final years = photoService.photosWithoutLocation
+        .map((photo) => photo.createDateTime.year)
+        .toSet()
+        .toList();
+    years.sort((a, b) => b.compareTo(a)); // Sort in descending order
+    return years;
   }
 
   Widget _buildPhotoGrid(PhotoService photoService) {
@@ -95,14 +148,13 @@ class _PhotoListState extends State<PhotoList> {
 
   Widget _buildPhotoItem(AssetEntity photo) {
     final Future<Uint8List?> thumbnailFuture =
-        photo.thumbnailDataWithSize(const ThumbnailSize(200, 200));
+    photo.thumbnailDataWithSize(const ThumbnailSize(200, 200));
 
     return FutureBuilder<Uint8List?>(
       future: thumbnailFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          return _buildPhotoCard(photo, snapshot.data!);
+        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+          return _buildPhotoCard(photo, snapshot.data ?? Uint8List(0));
         }
         return const Card(
           child: Center(
@@ -125,7 +177,14 @@ class _PhotoListState extends State<PhotoList> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PhotoDetailsScreen(photo: photo),
+            builder: (context) => PhotoDetailsScreen(
+              photo: photo,
+              onLocationSaved: () {
+                // Entferne das Foto aus der Liste
+                final photoService = context.read<PhotoService>();
+                photoService.removePhotoFromList(photo);
+              },
+            ),
           ),
         ),
         onLongPress: () => _showDeleteDialog(photo),
@@ -172,14 +231,12 @@ class _PhotoListState extends State<PhotoList> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text(
-            AppLocalizations.of(context)?.deletePhotoTitle ?? 'Foto löschen'),
-        content: Text(AppLocalizations.of(context)?.deletePhotoContent ??
-            'Möchten Sie dieses Foto wirklich löschen?'),
+        title: Text(AppLocalizations.of(context)!.deletePhotoTitle),
+        content: Text(AppLocalizations.of(context)!.deletePhotoContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)?.cancel ?? 'Abbrechen'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -188,11 +245,11 @@ class _PhotoListState extends State<PhotoList> {
                 await photoService.deletePhoto(photo);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Fehler beim Löschen des Fotos: $e')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.deletePhotoError)),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)?.delete ?? 'Löschen'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),

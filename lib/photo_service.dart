@@ -1,5 +1,7 @@
+import 'package:exif/exif.dart';
 import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
+
 
 class PhotoService extends ChangeNotifier {
   List<AssetEntity> _photosWithoutLocation = [];
@@ -14,6 +16,16 @@ class PhotoService extends ChangeNotifier {
     // Konstruktor bleibt leer
   }
 
+  void clearCache() {
+    _photosWithoutLocation.clear();
+    notifyListeners(); // Notify listeners about the change
+  }
+
+  void removePhotoFromList(AssetEntity photo) {
+    photosWithoutLocation.removeWhere((element) => element.id == photo.id);
+    notifyListeners(); // Aktualisiert die UI
+  }
+
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -21,16 +33,21 @@ class PhotoService extends ChangeNotifier {
     _isInitialized = true;
   }
 
-  Future<bool> requestPermissionsAndLoadPhotos() async {
+  Future<bool> requestPermissionsAndLoadPhotos({String? timeRange}) async {
     if (_isLoading) return false;
 
     _isLoading = true;
-    // Verzögern Sie den notifyListeners Aufruf
     Future.microtask(() => notifyListeners());
 
     try {
-      final permitted = await PhotoManager.requestPermissionExtend();
-      if (!permitted.isAuth) {
+      final PermissionState permissionState = await PhotoManager.requestPermissionExtend();
+
+      print("Berechtigungsstatus: $permissionState");
+
+      if (permissionState == PermissionState.limited) {
+        // Optional: Benutzer auf begrenzten Zugriff hinweisen
+        print("Begrenzter Zugriff gewährt");
+      } else if (permissionState != PermissionState.authorized) {
         _isLoading = false;
         Future.microtask(() => notifyListeners());
         return false;
@@ -38,44 +55,94 @@ class PhotoService extends ChangeNotifier {
 
       await loadPhotos();
       return true;
+    } catch (e) {
+      print('Fehler beim Anfordern von Berechtigungen: $e');
+      return false;
     } finally {
       _isLoading = false;
       Future.microtask(() => notifyListeners());
     }
   }
 
-  Future<void> loadPhotos() async {
+  Future<void> loadPhotos({String? timeRange}) async {
     try {
       final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
         type: RequestType.image,
         hasAll: true,
+        filterOption: FilterOptionGroup(
+          containsPathModified: false, // Nur lokal gespeicherte Fotos
+        ),
       );
 
       Set<AssetEntity> uniquePhotosWithoutLocation = {};
 
       for (var album in albums) {
-        final List<AssetEntity> photos = await album.getAssetListPaged(page: 0, size: 50);
+        final List<AssetEntity> photos =
+        await album.getAssetListPaged(page: 0, size: 50);
         for (var photo in photos) {
           if (await _photoHasNoLocation(photo) &&
               !_isPhotoAlreadyInList(photo, uniquePhotosWithoutLocation)) {
-            uniquePhotosWithoutLocation.add(photo);
+            // Apply time range filter if specified
+            if (timeRange != null && timeRange != 'All') {
+              final now = DateTime.now();
+              final filterStartTime =
+              now.subtract(_getTimeRangeDuration(timeRange));
+              if (photo.createDateTime.isAfter(filterStartTime)) {
+                uniquePhotosWithoutLocation.add(photo);
+              }
+            } else {
+              // No time range filter, add all photos
+              uniquePhotosWithoutLocation.add(photo);
+            }
           }
         }
       }
 
       _photosWithoutLocation = uniquePhotosWithoutLocation.toList()
         ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-
     } catch (e) {
       print('Fehler beim Laden der Fotos: $e');
       _photosWithoutLocation = [];
     }
   }
 
+  Duration _getTimeRangeDuration(String timeRange) {
+    switch (timeRange) {
+      case 'Last 1 Hours':
+        return const Duration(hours: 1);
+      case 'Last 4 Hours':
+        return const Duration(hours: 4);
+      case 'Last 12 hours':
+        return const Duration(hours: 12);
+      default:
+        return const Duration(hours: 1);
+    }
+  }
+
   Future<bool> _photoHasNoLocation(AssetEntity photo) async {
-    final latitude = _normalizeCoordinate(await photo.latitude);
-    final longitude = _normalizeCoordinate(await photo.longitude);
-    return latitude == null || longitude == null;
+    final file = await photo.file;
+    if (file != null) {
+      final exifData = await readExifFromBytes(await file.readAsBytes());
+      //exifData.forEach((k, v) {
+      //  print("$k: $v \n");
+      //});
+      final latitudeRef = exifData['GPS GPSLatitudeRef']?.printable;
+      final latitude = exifData['GPS GPSLatitude']?.printable;
+      final longitudeRef = exifData['GPS GPSLongitudeRef']?.printable;
+      final longitude = exifData['GPS GPSLongitude']?.printable;
+
+      // Check if latitude and longitude are present and not 0
+      if (latitude != null &&
+          longitude != null &&
+          latitude != '0' &&
+          longitude != '0' &&
+          latitudeRef != null &&
+          longitudeRef != null) {
+        //print('Photo ID: ${photo.id} latitudeRef: ${latitudeRef} latitude: ${latitude} longitudeRef: ${longitudeRef} longitude: ${longitude}');
+        return false; // Photo has location data
+      }
+    }
+    return true; // Photo has no location data or EXIF data is inaccessible
   }
 
   double? _normalizeCoordinate(double? coordinate) {
@@ -83,10 +150,7 @@ class PhotoService extends ChangeNotifier {
   }
 
   bool _isPhotoAlreadyInList(AssetEntity photo, Set<AssetEntity> photoList) {
-    return photoList.any((existingPhoto) =>
-    existingPhoto.id == photo.id ||
-        (existingPhoto.title == photo.title &&
-            existingPhoto.createDateTime == photo.createDateTime));
+    return photoList.any((existingPhoto) => existingPhoto.id == photo.id);
   }
 
   Future<void> deletePhoto(AssetEntity photo) async {

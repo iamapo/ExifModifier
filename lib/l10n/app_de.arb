@@ -1,12 +1,12 @@
 {
+  "@@locale": "de",
   "appTitle": "Fotos ohne Standort",
-  "permissionDialogTitle": "Zugriff erforderlich",
-  "permissionDialogContent": "Bitte erlauben Sie den Fotozugriff, um fortzufahren.",
+  "permissionDialogTitle": "Berechtigungen benötigt",
+  "permissionDialogContent": "Diese App benötigt Zugriff auf Fotos, um korrekt zu funktionieren.",
   "cancel": "Abbrechen",
   "openSettings": "Einstellungen öffnen",
   "noPhotosFound": "Keine Fotos ohne Standort gefunden",
   "photoWithoutTitle": "Foto ohne Titel",
-  "photoDetails": "Fotodetails",
   "errorLoadingDetails": "Fehler beim Laden der Details",
   "noDataAvailable": "Keine Daten verfügbar",
   "photoTitle": "Titel",
@@ -14,5 +14,33 @@
   "photoSize": "Größe",
   "deletePhotoTitle": "Foto löschen",
   "deletePhotoContent": "Möchten Sie dieses Foto wirklich löschen?",
-  "delete": "Löschen"
+  "delete": "Löschen",
+  "dropdownYear": "Jahr",
+  "month": "Monat",
+  "day": "Tag",
+  "deletePhotoError": "Fehler beim Löschen des Fotos",
+  "error": "Fehler",
+  "errorLoadingSimilarPictures": "Fehler beim Laden der ähnlichen Fotos",
+  "photoDetails": "Foto Details",
+  "errorSendingLocation": "Fehler beim Übertragen der Location",
+  "sendingLocationSuccess": "Location erfolgreich übertragen",
+  "locationSuccess": "Location erfolgreich übernommen",
+  "errorNoLocationDataFound": "Keine gültigen Location-Daten gefunden",
+  "oneHour": "1 Stunde",
+  "fourHours": "4 Stunden",
+  "twelveHours": "12 Stunden",
+  "timeRange1Hour": "1 Stunde",
+  "timeRange4Hours": "4 Stunden",
+  "timeRange12Hours": "12 Stunden",
+  "similarPictures": "Ähnliche Bilder",
+  "noSimilarPictures": "Keine ähnlichen Bilder gefunden",
+  "@timeRange1Hour": {
+    "description": "Zeitraum von 1 Stunde"
+  },
+  "@timeRange4Hours": {
+    "description": "Zeitraum von 4 Stunden"
+  },
+  "@timeRange12Hours": {
+    "description": "Zeitraum von 12 Stunden"
+  }
 }
