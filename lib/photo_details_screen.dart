@@ -2,7 +2,6 @@ import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -25,8 +24,6 @@ class PhotoDetailsScreen extends StatefulWidget {
 }
 
 class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
-  BannerAd? _bannerAd;
-  bool _isBannerAdReady = false;
 
   String? _selectedTimeRange = '1 hour';
 
@@ -61,27 +58,10 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
     _loadMainPhotoExifData(); // Load EXIF data for main photo
     _loadSimilarPhotos();
 
-    _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-2229498003007416~8867984154', // Test-AdUnit ID
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isBannerAdReady = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          print('BannerAd failed to load: $error');
-          ad.dispose();
-        },
-      ),
-    )..load();
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -313,7 +293,6 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
 
       if (parts.length != 3) return null;
 
-      // Konvertiere DMS zu Dezimalgrad
       final degrees = parts[0];
       final minutes = parts[1];
       final seconds = parts[2];
@@ -440,15 +419,6 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
                 ),
               ),
             ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              color: Colors.white, // Hintergrundfarbe für das Banner
-              width: double.infinity,
-              height: 50, // Höhe des Werbebanners
-              child: AdWidget(ad: _bannerAd!), // Zeigt das Banner an
-            ),
           ),
         ],
       ),

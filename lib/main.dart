@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'photo_service.dart';
 import 'photo_list.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
 
   final photoService = PhotoService();
 
@@ -30,11 +28,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   void _onPhotoLocationSaved() {
-    // Reload the PhotoList here
     print('Reload photoservice');
     widget.photoService.loadPhotos();
 
-    setState(() {}); // This will rebuild the entire widget tree
+    setState(() {});
   }
 
   @override
@@ -57,7 +54,7 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Colors.white,
         ),
         textTheme: Theme.of(context).textTheme.apply(
-          bodyColor: Colors.black45, // Setzen Sie die Schriftfarbe hier
+          bodyColor: Colors.black45,
         ),
       ),
       home: PhotoList(onPhotoLocationSaved: _onPhotoLocationSaved),

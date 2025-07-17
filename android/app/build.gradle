@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
-apply plugin: 'dev.flutter.flutter-gradle-plugin' // Flutter Plugin
+apply plugin: 'dev.flutter.flutter-gradle-plugin'
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
@@ -10,7 +10,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.iamapo.mapmyshot"
-    compileSdk 34
+    compileSdk 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -22,7 +22,6 @@ android {
         jvmTarget = "17"
     }
 
-    // Nutze JVM Toolchain
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"

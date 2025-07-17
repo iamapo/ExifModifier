@@ -2,13 +2,6 @@ PODS:
   - Flutter (1.0.0)
   - geocoding_ios (1.0.5):
     - Flutter
-  - Google-Mobile-Ads-SDK (11.13.0):
-    - GoogleUserMessagingPlatform (>= 1.1)
-  - google_mobile_ads (5.3.1):
-    - Flutter
-    - Google-Mobile-Ads-SDK (~> 11.13.0)
-    - webview_flutter_wkwebview
-  - GoogleUserMessagingPlatform (3.0.0)
   - image_picker_ios (0.0.1):
     - Flutter
   - path_provider_foundation (0.0.1):
@@ -19,32 +12,20 @@ PODS:
   - photo_manager (3.7.1):
     - Flutter
     - FlutterMacOS
-  - webview_flutter_wkwebview (0.0.1):
-    - Flutter
-    - FlutterMacOS
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
-  - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
-  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
-
-SPEC REPOS:
-  trunk:
-    - Google-Mobile-Ads-SDK
-    - GoogleUserMessagingPlatform
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   geocoding_ios:
     :path: ".symlinks/plugins/geocoding_ios/ios"
-  google_mobile_ads:
-    :path: ".symlinks/plugins/google_mobile_ads/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
@@ -53,20 +34,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   photo_manager:
     :path: ".symlinks/plugins/photo_manager/ios"
-  webview_flutter_wkwebview:
-    :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   geocoding_ios: eafacae6ad11a1eb56681f7d11df602a5fd49416
-  Google-Mobile-Ads-SDK: 14f57f2dc33532a24db288897e26494640810407
-  google_mobile_ads: fe0e2c1764ad95323dd0e3081d0bb2d58411f957
-  GoogleUserMessagingPlatform: f8d0cdad3ca835406755d0a69aa634f00e76d576
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   photo_manager: 81954a1bf804b6e882d0453b3b6bc7fad7b47d3d
-  webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
 
 PODFILE CHECKSUM: 88001a6f63fedf7dfbfdf4ee0c335d29da93cbc0
 
