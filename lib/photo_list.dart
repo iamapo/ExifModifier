@@ -12,7 +12,7 @@ class PhotoList extends StatefulWidget {
   @override
   _PhotoListState createState() => _PhotoListState();
 
-  final VoidCallback onPhotoLocationSaved; // Add callback function
+  final VoidCallback onPhotoLocationSaved;
 
   const PhotoList({Key? key, required this.onPhotoLocationSaved})
       : super(key: key);
