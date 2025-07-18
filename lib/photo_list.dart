@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
-import 'photo_service.dart';
+import 'services/photo_service.dart';
 import 'photo_details_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 

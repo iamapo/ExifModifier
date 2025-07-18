@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'photo_service.dart';
+import 'services/photo_service.dart';
 import 'photo_list.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -28,7 +28,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   void _onPhotoLocationSaved() {
-    print('Reload photoservice');
     widget.photoService.loadPhotos();
 
     setState(() {});

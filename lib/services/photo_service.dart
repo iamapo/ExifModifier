@@ -1,6 +1,7 @@
 import 'package:exif/exif.dart';
 import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
+import '/utilities/exif_utils.dart';
 
 
 class PhotoService extends ChangeNotifier {
@@ -12,9 +13,7 @@ class PhotoService extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   List<AssetEntity> get photosWithoutLocation => _photosWithoutLocation;
 
-  PhotoService() {
-    // Konstruktor bleibt leer
-  }
+  PhotoService();
 
   void clearCache() {
     _photosWithoutLocation.clear();
@@ -86,7 +85,7 @@ class PhotoService extends ChangeNotifier {
             if (timeRange != null && timeRange != 'All') {
               final now = DateTime.now();
               final filterStartTime =
-              now.subtract(_getTimeRangeDuration(timeRange));
+              now.subtract(getTimeRangeDuration(timeRange));
               if (photo.createDateTime.isAfter(filterStartTime)) {
                 uniquePhotosWithoutLocation.add(photo);
               }
@@ -103,19 +102,6 @@ class PhotoService extends ChangeNotifier {
     } catch (e) {
       print('Fehler beim Laden der Fotos: $e');
       _photosWithoutLocation = [];
-    }
-  }
-
-  Duration _getTimeRangeDuration(String timeRange) {
-    switch (timeRange) {
-      case 'Last 1 Hours':
-        return const Duration(hours: 1);
-      case 'Last 4 Hours':
-        return const Duration(hours: 4);
-      case 'Last 12 hours':
-        return const Duration(hours: 12);
-      default:
-        return const Duration(hours: 1);
     }
   }
 

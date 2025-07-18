@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'utilities/exif_utils.dart';
 
 // Global EXIF data cache
 final Map<AssetEntity, Map<String, IfdTag>> _exifDataCache = {};
@@ -32,19 +33,6 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
     '4 hours',
     '12 hours',
   ];
-
-  Duration _getTimeRangeDuration(String? timeRange) {
-    switch (timeRange) {
-      case '1 hour':
-        return const Duration(hours: 1);
-      case '4 hours':
-        return const Duration(hours: 4);
-      case '12 hours':
-        return const Duration(hours: 12);
-      default:
-        return const Duration(hours: 1); // Default to 1 hour if invalid
-    }
-  }
 
   static const platform =
   MethodChannel('io.flutter.flutter.app/photo_location');
@@ -122,7 +110,7 @@ class _PhotoDetailsScreenState extends State<PhotoDetailsScreen> {
 
   Future<void> _loadSimilarPhotos() async {
     try {
-      final Duration timeThreshold = _getTimeRangeDuration(_selectedTimeRange);
+      final Duration timeThreshold = getTimeRangeDuration(_selectedTimeRange);
       final similar = await findSimilarImages(widget.photo, timeThreshold);
 
       List<Future<void>> fetchLocationTasks = [];
