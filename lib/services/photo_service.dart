@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'exif_service.dart';
 
-
 class PhotoService with ChangeNotifier {
   final ExifService exifService;
   List<AssetEntity> photos = [];

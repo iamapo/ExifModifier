@@ -8,34 +8,23 @@ class ExifService {
   final Map<String, String> _locationCache = {};
 
   Future<Map<String, IfdTag>?> readExif(AssetEntity e) async {
-    if (_cache.containsKey(e.id)) {
-      return _cache[e.id];
-    }
+    if (_cache.containsKey(e.id)) return _cache[e.id];
     final file = await e.originFile;
-    if (file == null) {
-      return null;
-    }
+    if (file == null) return null;
     final bytes = await file.readAsBytes();
-    Map<String, IfdTag> exif;
-    try {
-      exif = await readExifFromBytes(bytes);
-    } catch (err, st) {
-      return null;
-    }
+    final exif = await readExifFromBytes(bytes);
     _cache[e.id] = exif;
     return exif;
   }
 
   Future<double?> getLatitude(AssetEntity e) async {
     final exif = await readExif(e);
-    final raw = exif?['GPS GPSLatitude']?.printable;
-    return convertDmsToDecimal(raw);
+    return convertDmsToDecimal(exif?['GPS GPSLatitude']?.printable);
   }
 
   Future<double?> getLongitude(AssetEntity e) async {
     final exif = await readExif(e);
-    final raw = exif?['GPS GPSLongitude']?.printable;
-    return convertDmsToDecimal(raw);
+    return convertDmsToDecimal(exif?['GPS GPSLongitude']?.printable);
   }
 
   Future<String> getLocationName(AssetEntity e) async {

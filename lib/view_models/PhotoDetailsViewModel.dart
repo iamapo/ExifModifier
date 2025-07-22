@@ -1,19 +1,20 @@
+import 'package:MapMyShot/services/SimilarityService.dart';
 import 'package:flutter/material.dart';
 import '../services/exif_service.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import '../utilities/photo_utils.dart';
 
 class PhotoDetailsViewModel with ChangeNotifier {
   final AssetEntity photo;
   final ExifService exifService;
+  final SimilarityService similarityService;
   Map<AssetEntity, String> similarLocations = {};
   List<AssetEntity> similar = [];
   String timeRange = '1 hour';
   bool loadingSimilar = false;
 
-  PhotoDetailsViewModel({required this.photo, required this.exifService});
+  PhotoDetailsViewModel({required this.photo, required this.exifService, required this.similarityService});
 
   Future<void> init() async {
     await loadSimilar();
@@ -30,7 +31,7 @@ class PhotoDetailsViewModel with ChangeNotifier {
   Future<void> loadSimilar() async {
     loadingSimilar = true;
     notifyListeners();
-    final all = await PhotoUtils.findSimilarImages(photo, _dur(timeRange));
+    final all = await similarityService.findByTimeAndGps(photo, _dur(timeRange));
     similar = all;
     similarLocations = {};
     for (var e in all) {
