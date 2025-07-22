@@ -6,6 +6,7 @@ import '../utilities/grouping_utils.dart';
 import 'photo_details_screen.dart';
 import '../view_models/PhotoListViewModel.dart';
 import '../services/exif_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhotoListScreen extends StatelessWidget {
   const PhotoListScreen({super.key});
@@ -27,7 +28,7 @@ class PhotoListScreen extends StatelessWidget {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text('Fotos ohne Location'),
+              title: Text(AppLocalizations.of(context)!.appTitle),
               elevation: 0,
             ),
             body: ListView(
