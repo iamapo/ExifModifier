@@ -1,4 +1,4 @@
-import 'package:MapMyShot/services/SimilarityService.dart';
+import 'package:MapMyShot/services/similarity_service.dart';
 import 'package:flutter/material.dart';
 import '../services/exif_service.dart';
 import 'package:photo_manager/photo_manager.dart';

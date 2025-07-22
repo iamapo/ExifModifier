@@ -3,7 +3,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import '../services/SimilarityService.dart';
+import '../services/similarity_service.dart';
 import '../services/exif_service.dart';
 import '../view_models/PhotoDetailsViewModel.dart';
 import '../widgets/similar_photo_grid.dart';
