@@ -11,7 +11,7 @@ import '../widgets/similar_photo_grid.dart';
 class PhotoDetailsScreen extends StatelessWidget {
   final AssetEntity photo;
   final VoidCallback onSaved;
-  const PhotoDetailsScreen({Key? key, required this.photo, required this.onSaved}) : super(key: key);
+  const PhotoDetailsScreen({super.key, required this.photo, required this.onSaved});
 
   @override
   Widget build(BuildContext context) {
