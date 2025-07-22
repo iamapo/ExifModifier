@@ -3,8 +3,7 @@
     <!-- Berechtigungen für verschiedene Android-Versionen -->
     <!-- Zugriff auf externe Speicherdaten bis Android 12 -->
     <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+        android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Zugriff auf Medien ab Android 13 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
