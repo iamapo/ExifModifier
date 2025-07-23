@@ -1,3 +1,4 @@
+import 'package:MapMyShot/views/widgets/similar_photo_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -7,7 +8,6 @@ import '../l10n/app_localizations.dart';
 import '../services/similarity_service.dart';
 import '../services/exif_service.dart';
 import '../view_models/PhotoDetailsViewModel.dart';
-import '../widgets/similar_photo_grid.dart';
 
 class PhotoDetailsScreen extends StatelessWidget {
   final AssetEntity photo;

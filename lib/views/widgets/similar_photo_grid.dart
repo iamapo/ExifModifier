@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
-
-import '../l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 
 class SimilarPhotosGrid extends StatelessWidget {
   final List<AssetEntity> photos;
