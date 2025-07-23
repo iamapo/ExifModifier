@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/photo_service.dart';
 import '../utilities/grouping_utils.dart';
 import 'photo_details_screen.dart';
 import '../view_models/PhotoListViewModel.dart';
 import '../services/exif_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhotoListScreen extends StatelessWidget {
   const PhotoListScreen({super.key});
