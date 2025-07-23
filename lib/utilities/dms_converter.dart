@@ -1,5 +1,3 @@
-
-
 double? convertDmsToDecimal(String? dms) {
   if (dms == null) return null;
   final parts = dms.replaceAll(RegExp(r'[\[\]]'), '').split(', ').map((p) {
