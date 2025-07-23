@@ -43,6 +43,11 @@ class PhotoDetailsScreen extends StatelessWidget {
             loc.timeRange4Hours,
             loc.timeRange12Hours,
           ];
+
+          if (!options.contains(vm.timeRange)) {
+            vm.timeRange = options[0];    // "1 Stunde"
+            vm.loadSimilar();
+          }
           // Aktiver Index in der SegmentControl
           final currentIndex = options.indexOf(vm.timeRange);
 
