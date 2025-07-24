@@ -6,7 +6,6 @@ class SimilarityService {
 
   SimilarityService(this.exif);
 
-  /// Findet Bilder innerhalb [threshold] um [target.createDateTime] und mit GPS-Tags.
   Future<List<AssetEntity>> findByTimeAndGps(
       AssetEntity target,
       Duration threshold,

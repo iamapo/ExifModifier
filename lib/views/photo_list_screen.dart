@@ -5,7 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../services/photo_service.dart';
 import '../utilities/grouping_utils.dart';
 import 'photo_details_screen.dart';
-import '../view_models/PhotoListViewModel.dart';
+import '../view_models/photo_list_viewmodel.dart';
 import '../services/exif_service.dart';
 
 class PhotoListScreen extends StatelessWidget {

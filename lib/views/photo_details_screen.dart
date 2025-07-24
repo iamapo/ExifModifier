@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/similarity_service.dart';
 import '../services/exif_service.dart';
-import '../view_models/PhotoDetailsViewModel.dart';
+import '../view_models/photo_details_viewmodel.dart';
 
 class PhotoDetailsScreen extends StatelessWidget {
   final AssetEntity photo;
@@ -37,7 +37,6 @@ class PhotoDetailsScreen extends StatelessWidget {
       child: Consumer<PhotoDetailsViewModel>(
         builder: (context, vm, __) {
           final loc = AppLocalizations.of(context)!;
-          // Liste der Optionen mit Localized-Strings
           final options = <String>[
             loc.timeRange1Hour,
             loc.timeRange4Hours,
@@ -45,10 +44,9 @@ class PhotoDetailsScreen extends StatelessWidget {
           ];
 
           if (!options.contains(vm.timeRange)) {
-            vm.timeRange = options[0];    // "1 Stunde"
+            vm.timeRange = options[0];
             vm.loadSimilar();
           }
-          // Aktiver Index in der SegmentControl
           final currentIndex = options.indexOf(vm.timeRange);
 
           return Scaffold(
@@ -59,7 +57,6 @@ class PhotoDetailsScreen extends StatelessWidget {
             body: ListView(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               children: [
-                // 1. Großes Foto
                 AspectRatio(
                   aspectRatio: 1,
                   child: ClipRRect(
@@ -72,9 +69,7 @@ class PhotoDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 2. Datum & Titel
                 Text(
-                  // formatiere Datum, z.B. "24. April 2024"
                   DateFormat.yMMMMd(loc.localeName).format(photo.createDateTime),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
@@ -85,7 +80,6 @@ class PhotoDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 3. Segmentierter Filter
                 Center(
                   child: ToggleButtons(
                     isSelected: List.generate(options.length, (i) => i == currentIndex),
@@ -107,7 +101,6 @@ class PhotoDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // 4. Ähnliche Fotos im 3-Spalten-Raster
                 vm.loadingSimilar
                     ? const Center(child: CircularProgressIndicator())
                     : SimilarPhotosGrid(
