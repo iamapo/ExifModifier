@@ -21,7 +21,6 @@ class PhotoDetailsScreen extends StatelessWidget {
 
   static const _mapMyShotOrange = Color(0xFFFFA500);
 
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<PhotoDetailsViewModel>(
@@ -37,11 +36,7 @@ class PhotoDetailsScreen extends StatelessWidget {
       child: Consumer<PhotoDetailsViewModel>(
         builder: (context, vm, __) {
           final loc = AppLocalizations.of(context)!;
-          final options = <String>[
-            loc.timeRange1Hour,
-            loc.timeRange4Hours,
-            loc.timeRange12Hours,
-          ];
+          final options = <String>[loc.timeRange1Hour, loc.timeRange4Hours, loc.timeRange12Hours];
 
           if (!options.contains(vm.timeRange)) {
             vm.timeRange = options[0];
@@ -68,7 +63,6 @@ class PhotoDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 Text(
                   DateFormat.yMMMMd(loc.localeName).format(photo.createDateTime),
                   style: Theme.of(context).textTheme.titleMedium,
@@ -79,7 +73,6 @@ class PhotoDetailsScreen extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 12),
-
                 Center(
                   child: ToggleButtons(
                     isSelected: List.generate(options.length, (i) => i == currentIndex),
@@ -100,25 +93,26 @@ class PhotoDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 vm.loadingSimilar
                     ? const Center(child: CircularProgressIndicator())
-                    : SimilarPhotosGrid(
-                  photos: vm.similar,
-                  locationNames: vm.similarLocations,
-                  onPhotoTap: (src) async {
-                    final ok = await vm.applyLocation(src);
-                    if (ok) {
-                      onSaved();
-                      if (context.mounted) Navigator.pop(context);
-                    } else if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(loc.errorSendingLocation)),
-                      );
-                    }
-                  },
+                    : SizedBox(
+                  height: 400,
+                  child: SimilarPhotosGrid(
+                    photos: vm.similar,
+                    locationNames: vm.similarLocations,
+                    onPhotoTap: (src) async {
+                      final ok = await vm.applyLocation(src);
+                      if (ok) {
+                        onSaved();
+                        if (context.mounted) Navigator.pop(context);
+                      } else if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(loc.errorSendingLocation)),
+                        );
+                      }
+                    },
+                  ),
                 ),
-
                 const SizedBox(height: 24),
               ],
             ),

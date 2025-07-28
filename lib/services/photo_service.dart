@@ -14,7 +14,7 @@ class PhotoService with ChangeNotifier {
     return perm == PermissionState.authorized || perm == PermissionState.limited;
   }
 
-  Future<void> loadPhotos({int maxPerAlbum = 100}) async {
+  Future<void> loadPhotos({int maxPerAlbum = 20, int batchSize = 10}) async {
     isLoading = true;
     photos.clear();
     notifyListeners();
@@ -38,19 +38,21 @@ class PhotoService with ChangeNotifier {
         }
       }
 
-      for (final asset in candidates) {
-        final lat = await exifService.getLatitude(asset);
-        final lon = await exifService.getLongitude(asset);
-        final hasLocation = lat != null && lon != null;
+      for (int i = 0; i < candidates.length; i += batchSize) {
+        final batch = candidates.skip(i).take(batchSize).toList();
 
-        if (!hasLocation) {
-          photos.add(asset);
-          notifyListeners();
-        }
+        final results = await Future.wait(batch.map((asset) async {
+          final lat = await exifService.getLatitude(asset);
+          final lon = await exifService.getLongitude(asset);
+          final hasLocation = lat != null && lon != null;
+
+          return hasLocation ? null : asset;
+        }));
+
+        photos.addAll(results.whereType<AssetEntity>());
+        photos.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+        notifyListeners();
       }
-
-      photos.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-      notifyListeners();
     } catch (e, stack) {
       debugPrint('[PhotoService] Fehler beim Laden: $e');
       debugPrint('$stack');

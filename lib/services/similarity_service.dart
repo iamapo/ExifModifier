@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'exif_service.dart';
 
@@ -23,6 +24,8 @@ class SimilarityService {
     if (albums.isEmpty) return [];
 
     final all = await albums.first.getAssetListRange(start: 0, end: 999999);
+    debugPrint('[PhotoService] Found ${all.length} images in time range from ${min.toIso8601String()} to ${max.toIso8601String()}');
+
     final result = <AssetEntity>[];
 
     for (final image in all) {

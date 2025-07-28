@@ -31,6 +31,7 @@ class PhotoDetailsViewModel with ChangeNotifier {
   Future<void> loadSimilar() async {
     loadingSimilar = true;
     notifyListeners();
+    debugPrint('[PhotoService] Loading similar photos for ${photo.id} with time range $timeRange');
     final all = await similarityService.findByTimeAndGps(photo, _dur(timeRange));
     similar = all;
     similarLocations = {};
