@@ -14,8 +14,9 @@ class PhotoService with ChangeNotifier {
     return perm == PermissionState.authorized || perm == PermissionState.limited;
   }
 
-  Future<void> loadPhotos({String? timeRange}) async {
+  Future<void> loadPhotos({int maxPerAlbum = 100}) async {
     isLoading = true;
+    photos.clear();
     notifyListeners();
 
     try {
@@ -24,29 +25,35 @@ class PhotoService with ChangeNotifier {
         hasAll: true,
       );
 
-      final List<AssetEntity> result = [];
       final Set<String> seenIds = {};
+      final List<AssetEntity> candidates = [];
 
       for (final album in paths) {
-        final list = await album.getAssetListPaged(page: 0, size: 100);
+        final list = await album.getAssetListPaged(page: 0, size: maxPerAlbum);
         for (final e in list) {
-          if (seenIds.contains(e.id)) {
-            continue;
-          }
-          seenIds.add(e.id);
-
-          final lat = await exifService.getLatitude(e);
-          final lon = await exifService.getLongitude(e);
-
-          if (lat == null || lon == null) {
-            result.add(e);
-          } else {
+          if (!seenIds.contains(e.id)) {
+            seenIds.add(e.id);
+            candidates.add(e);
           }
         }
       }
 
-      photos = result
-        ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+      for (final asset in candidates) {
+        final lat = await exifService.getLatitude(asset);
+        final lon = await exifService.getLongitude(asset);
+        final hasLocation = lat != null && lon != null;
+
+        if (!hasLocation) {
+          photos.add(asset);
+          notifyListeners();
+        }
+      }
+
+      photos.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+      notifyListeners();
+    } catch (e, stack) {
+      debugPrint('[PhotoService] Fehler beim Laden: $e');
+      debugPrint('$stack');
     } finally {
       isLoading = false;
       notifyListeners();
