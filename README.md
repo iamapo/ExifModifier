@@ -1,16 +1,20 @@
-# exif_modifier
+📸 ExifModifier
 
-A new Flutter project.
+ExifModifier is a Flutter-based app that helps you fill in missing GPS location data in your photos by identifying other images taken within a similar time frame. Instead of using visual similarity, the app leverages timestamps to suggest the most likely location data based on nearby photos.
 
-## Getting Started
+⸻
 
-This project is a starting point for a Flutter application.
+🌍 Core Feature
 
-A few resources to get you started if this is your first Flutter project:
+🗺️ Auto-fill missing location data based on timestamp proximity
+If a photo is missing GPS data, the app searches your local photo collection for other pictures taken around the same time (e.g., within a few minutes or hours) and suggests copying their location data.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+This feature is ideal for users who took multiple photos in the same area but only some have valid GPS coordinates.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+⸻
+
+🚀 Features
+	•	Detect photos with missing GPS EXIF data.
+	•	Find and display photos taken within a similar time frame.
+	•	Suggest GPS metadata based on nearby (in time) photos.
+	•	Allow the user to copy location data with one tap.
