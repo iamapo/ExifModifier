@@ -44,15 +44,33 @@ class PhotoDetailsViewModel with ChangeNotifier {
   static const MethodChannel _channel = MethodChannel('io.flutter.flutter.app/photo_location');
 
   Future<bool> applyLocation(AssetEntity src) async {
+    final isAvailable = await src.isLocallyAvailable();
+    if (!isAvailable) {
+      final file = await src.originFile;
+      if (file == null) {
+        debugPrint('Foto ist nicht lokal verfügbar und konnte nicht heruntergeladen werden.');
+        return false;
+      }
+    }
+
     final lat = await exifService.getLatitude(src);
     final lon = await exifService.getLongitude(src);
-    final path = (await photo.file)?.path;
-    if (lat == null || lon == null || path == null) return false;
-    final ok = await _channel.invokeMethod('updatePhotoLocation', {
-      'filePath': path,
-      'latitude': lat,
-      'longitude': lon,
-    });
-    return ok == true;
+
+    if (lat == null || lon == null) {
+      debugPrint('EXIF-Daten konnten nicht gelesen werden.');
+      return false;
+    }
+
+    try {
+      final ok = await _channel.invokeMethod('updatePhotoLocation', {
+        'localId': src.id,
+        'latitude': lat,
+        'longitude': lon,
+      });
+      return ok == true;
+    } catch (e) {
+      debugPrint('Fehler beim Schreiben der Location: $e');
+      return false;
+    }
   }
 }
