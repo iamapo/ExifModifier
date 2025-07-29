@@ -54,7 +54,6 @@ class PhotoService with ChangeNotifier {
         notifyListeners();
       }
     } catch (e, stack) {
-      debugPrint('[PhotoService] Fehler beim Laden: $e');
       debugPrint('$stack');
     } finally {
       isLoading = false;

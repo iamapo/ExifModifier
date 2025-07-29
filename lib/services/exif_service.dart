@@ -32,11 +32,11 @@ class ExifService {
     if (_locationCache.containsKey(key)) return _locationCache[key]!;
     final lat = await getLatitude(e);
     final lon = await getLongitude(e);
-    if (lat == null || lon == null) return 'Keine Location verfügbar';
+    if (lat == null || lon == null) return 'No Location Data';
     final placemarks = await placemarkFromCoordinates(lat, lon);
     final name = placemarks.isNotEmpty
         ? '${placemarks.first.locality}, ${placemarks.first.country}'
-        : 'Location nicht gefunden';
+        : 'Location Unknown';
     _locationCache[key] = name;
     return name;
   }

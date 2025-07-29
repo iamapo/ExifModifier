@@ -48,7 +48,6 @@ class PhotoDetailsViewModel with ChangeNotifier {
     if (!isAvailable) {
       final file = await src.originFile;
       if (file == null) {
-        debugPrint('Foto ist nicht lokal verfügbar und konnte nicht heruntergeladen werden.');
         return false;
       }
     }
@@ -57,7 +56,6 @@ class PhotoDetailsViewModel with ChangeNotifier {
     final lon = await exifService.getLongitude(src);
 
     if (lat == null || lon == null) {
-      debugPrint('EXIF-Daten konnten nicht gelesen werden.');
       return false;
     }
 
@@ -69,7 +67,7 @@ class PhotoDetailsViewModel with ChangeNotifier {
       });
       return ok == true;
     } catch (e) {
-      debugPrint('Fehler beim Schreiben der Location: $e');
+      debugPrint('Error writing location: $e');
       return false;
     }
   }
